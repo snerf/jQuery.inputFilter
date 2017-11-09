@@ -1,0 +1,101 @@
+(function ($) {
+    $.fn.inputFilter = function (swtch) {
+        return this.each(function () {
+            this.onkeypress = function (event) {
+                evt = event ? event : window.event;
+                kCode = evt.keyCode ? evt.keyCode : (evt.charCode ? evt.charCode : evt.which);
+                
+                if (swtch.toUpperCase() == "time".toUpperCase()) {
+                    if ((kCode >= 48 && kCode <= 58) || kCode == 8 || kCode == 39
+                        || kCode == 37 || kCode == 9 || kCode == 46) {// || kCode == 46 dot & delete
+                        return true;
+                    }
+                    else return false;
+                }
+                if (swtch.toUpperCase() == "numericdot".toUpperCase()) {
+                    if ((kCode >= 48 && kCode <= 57) || kCode == 8 || kCode == 39
+                        || kCode == 37 || kCode == 9 || kCode == 46) {//  dot
+                        return true;
+                    }
+                    else return false;
+                }
+                if (swtch.toUpperCase() == "numeric".toUpperCase()) {
+                    if ((kCode >= 48 && kCode <= 57) || kCode == 8 || kCode == 39
+                        || kCode == 37 || kCode == 9) {// || kCode == 46 dot & delete
+                        return true;
+                    }
+                    else return false;
+                }
+                if (swtch.toUpperCase() == "numeric+".toUpperCase()) {
+                    if ((kCode >= 48 && kCode <= 57) || kCode == 8 || kCode == 43 || kCode == 39
+                        || kCode == 37 || kCode == 46 || kCode == 9 || kCode == 45) {
+                        return true;
+                    }
+                    else return false;
+                }
+                if (swtch.toUpperCase() == "alphaeng".toUpperCase()) {
+                    if ((kCode >= 65 && kCode <= 90) || (kCode >= 97 && kCode <= 122) || kCode == 8
+                        || kCode == 39 || kCode == 37 || kCode == 46 || kCode == 9) {
+                        return true;
+                    }
+                    else return false;
+                }
+                if (swtch.toUpperCase() == "alphaengscores".toUpperCase()) {
+                    if ((kCode >= 65 && kCode <= 90) || (kCode >= 97 && kCode <= 122) || kCode == 8
+                        || kCode == 39 || kCode == 37 || kCode == 46 || kCode == 45 || kCode == 95 || kCode == 9) {
+                        return true;
+                    }
+                    else return false;
+                }
+                if (swtch.toUpperCase() == "alphaengscore".toUpperCase()) {
+                    if ((kCode >= 65 && kCode <= 90) || (kCode >= 97 && kCode <= 122) || kCode == 8
+                        || kCode == 39 || kCode == 37 || kCode == 46 || kCode == 95 || kCode == 9) {
+                        return true;
+                    }
+                    else return false;
+                }
+                if (swtch.toUpperCase() == "alphaengscorenum".toUpperCase()) {
+                    if ((kCode >= 65 && kCode <= 90) || (kCode >= 97 && kCode <= 122) || (kCode >= 129 && kCode <= 152)
+                        || (kCode >= 160 && kCode <= 164) || kCode == 8 || (kCode >= 48 && kCode <= 57)
+                        || kCode == 39 || kCode == 37 || kCode == 46 || kCode == 95 || kCode == 9) {
+                        return true;
+                    }
+                    else return false;
+                }
+                if (swtch.toUpperCase() == "alphaengscorenum@".toUpperCase()) {
+                    if ((kCode >= 65 && kCode <= 90) || (kCode >= 97 && kCode <= 122) || (kCode >= 129 && kCode <= 152)
+                        || (kCode >= 160 && kCode <= 164) || kCode == 8 || (kCode >= 48 && kCode <= 57)
+                        || kCode == 39 || kCode == 37 || kCode == 46 || kCode == 45 || kCode == 95 || kCode == 9 || kCode == 64) {
+                        return true;
+                    }
+                    else return false;
+                }
+                if (swtch.toUpperCase() == "alphaengscoresnum".toUpperCase()) {
+                    if ((kCode >= 65 && kCode <= 90) || (kCode >= 97 && kCode <= 122) || (kCode >= 129 && kCode <= 152)
+                        || (kCode >= 160 && kCode <= 164) || kCode == 8 || (kCode >= 48 && kCode <= 57)
+                        || kCode == 39 || kCode == 37 || kCode == 36 || kCode == 45 || kCode == 95 || kCode == 9) {
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                if (swtch.toUpperCase() == "alpharus".toUpperCase()) {
+                    if ((kCode >= 129 && kCode <= 152) || (kCode >= 160 && kCode <= 164) || kCode == 8
+                        || kCode == 39 || kCode == 37 || kCode == 46 || kCode == 9) {
+                        return true;
+                    }
+                    else return false;
+                }
+                if (swtch.toUpperCase() == "alphanumeric".toUpperCase()) {
+                    if ((kCode >= 48 && kCode <= 57) || (kCode >= 65 && kCode <= 90)
+                        || (kCode >= 97 && kCode <= 122) || kCode == 8 || kCode == 39 || kCode == 37
+                        || kCode == 46 || kCode == 9) {
+                        return true;
+                    }
+                    else return false;
+                }
+            };
+        });
+    };
+})(jQuery);
