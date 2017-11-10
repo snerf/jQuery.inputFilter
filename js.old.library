@@ -1,0 +1,450 @@
+class EventHandlers {
+  function addHandler(obj, type, fn) {
+    if ((obj == "" || obj == undefined || obj == null) ||
+        (type == "" || type == undefined || type == null) ||
+        (fn == "" || fn == undefined || fn == null)) return false;
+    obj = typeof obj == "object" ? obj : (id(obj) ? id(obj) : false);
+    if (!obj) return false;
+
+    if (obj.addEventListener) {
+        obj.addEventListener(type, fn, false);
+    }
+    else if (obj.attachEvent) {
+        obj.attachEvent("on" + type, fn);
+    }
+    else {
+        obj["on" + type] = fn;
+    }
+};
+
+function removeHandler(obj, type, fn) {
+    if ((obj == "" || obj == undefined || obj == null) ||
+        (type == "" || type == undefined || type == null) ||
+        (fn == "" || fn == undefined || fn == null)) return false;
+    obj = typeof obj == "object" ? obj : (id(obj) ? id(obj) : false);
+    if (!obj) return false;
+
+    if (obj.removeEventListener) {
+        obj.removeEventListener(type, fn, false);
+    }
+    else if (obj.detachEvent) {
+        obj.detachEvent("on" + type, fn);
+    }
+    else {
+        obj["on" + type] = null;
+    }
+};
+}
+
+class _DOM {
+    constructor() {
+        // "getElementsByClassName" не определен IE, 
+        // так что этот метод можно реализовать в JavaScript 
+        if (document.getElementsByClassName == undefined) {
+            document.getElementsByClassName = function (cl) {
+                var retnode = [];
+                var myclass = new RegExp('\\b' + cl + '\\b');
+                var elem = this.getElementsByTagName('*');
+                for (var i = 0; i < elem.length; i++) {
+                    var classes = elem[i].className;
+                    if (myclass.test(classes)) {
+                        retnode.push(elem[i]);
+                    }
+                }
+                return retnode;
+            }
+        };
+    }
+  //сокращаем объем кода
+  function id(name) {
+    //возращаем ссылку на эелемент
+    //по переданному имени элемента
+    return document.getElementById(name);
+};
+
+//составляем коллекцию элементов
+function tag(name, elem) {
+    //перебираем элементы определенного типа,
+    //если передан дополнительные параметр - перебираем элементы,
+    //определенного, родителя, если нет - все элементы
+    return elem ? id(elem).getElementsByTagName(name)
+        : document.getElementsByTagName(name);
+};
+
+function prevSib(elem, name) {
+    if (elem.previousSibling == null) return false;
+    if (elem.previousSibling.nodeType != 3 && elem.previousSibling.nodeName == name.toUpperCase()) {
+
+        return elem.previousSibling;
+    }
+    else {
+        return prevSib(elem.previousSibling, name);
+    }
+};
+
+function nextSib(elem, name) {
+    if (elem.nextSibling == null) return false;
+    if (elem.nextSibling.nodeType != 3 && elem.nextSibling.nodeName == name.toUpperCase()) {
+        return elem.nextSibling;
+    }
+    else {
+        return nextSib(elem.nextSibling, name);
+
+    }
+};
+
+//находит определенного потомка и переданного родителя
+function findChild(parent, searched, classN) {
+    if (!parent.nodeName || !searched || parent.nodeType != 1) return false;
+    //получаем список дочерних элементов	 
+    var list = parent.childNodes;
+    //
+    for (var i = 0; i < list.length; i++) {
+        //если дочерний элемент совпадает
+        //с искомым - возвращаем ссылку на него
+        //и прекращаем выполнение
+        if (list[i].nodeName == searched.toUpperCase()) {
+            if (classN != undefined && classN != "") {
+                var pat = new RegExp('\\b' + classN + '\\b');
+                if (pat.test(list[i].className)) {
+                    return list[i];
+                }
+            }
+            else {
+                return list[i];
+            }
+        }
+        //если не находим - переходим к потомкам
+        else {
+            //если текущий элемент является узлом
+            //элемента то
+            if (list[i].nodeType == 1) {
+                //получаем список потомков
+                var deeplist = list[i].childNodes;
+            }
+            //если нет - продолжаем со следующей итерации
+            else continue;
+            //
+            for (var j = 0; j < deeplist.length; j++) {
+                //есои находим нужный элемент среди потомков -
+                //прекращаем выполнение и возвращем ссылку на него
+                if (deeplist[j].nodeName == searched.toUpperCase()) {
+                    if (classN != undefined && classN != "") {
+                        var pat = new RegExp('\\b' + classN + '\\b');
+                        if (pat.test(deeplist[j].className)) {
+                            return deeplist[j];
+                        }
+                    }
+                    else {
+                        return deeplist[j];
+                    }
+                }
+                //если нет, углубляемся на уровень ниже рекурсией
+                else return findChild(deeplist[j], searched, classN);
+            }//end second for
+        }//end else
+    }//end first for
+}
+
+//находит определенного предка по переданному потомку
+function findParent(child, searched) {
+    //
+    if (!child || !searched) return false;
+    //
+    if ((child.nodeName || searched).toUpperCase() == ('BODY' || 'HEAD' || 'HTML')) return false;
+    //если родительский элемент совпадает
+    //с искомым - возвращаем ссылку на него
+    //и прекращаем выполнение
+    if (child.parentNode.nodeName == searched.toUpperCase()) return child.parentNode;
+    //если не совпадает - переходим к более старшему предку
+    else {
+        //получаем ссылку на более старший предок
+        var next = child.parentNode.parentNode;
+        //если он соответсвует искомому - прерываем выполнение
+        //возвращаем ссылку на него
+        if (next.nodeName == searched.toUpperCase()) return next;
+        //если нет
+        else {
+            //идем на шаг выше рекурсией
+            return findParent(next, searched);
+        }
+    }
+}
+
+function collector(noda) {
+    var text = "";
+    var nodes = noda.childNodes;
+    for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].nodeType == 3) text = text + " " + (nodes[i].innerText != undefined ? nodes[i].innerText : nodes[i].textContent);
+        else if (nodes[i].nodeName.toUpperCase() == "input".toUpperCase()) {
+            text = text + " " + nodes[i].value;
+        }
+        else if (nodes[i].nodeName.toUpperCase() == "select".toUpperCase()) {
+            text = text + " " + nodes[i].options[nodes[i].selectedIndex].text;
+        }
+        else {
+            if ((nodes[i].childNodes.length > 1 || nodes[i].nodeName.toUpperCase() == "table".toUpperCase()
+                || nodes[i].nodeName.toUpperCase() == "tbody".toUpperCase()) && nodes[i].childNodes.length != 0
+                && nodes[i].nodeName.toUpperCase() != "select".toUpperCase()) {
+                text = text + " " + collector(nodes[i]);
+            }
+            else {
+                if (nodes[i].firstChild.nodeType == 3) text = text + " " + (nodes[i].firstChild.innerText != undefined ? nodes[i].firstChild.innerText : nodes[i].firstChild.textContent);
+                else if (nodes[i].firstChild.nodeType == 1 && nodes[i].firstChild.nodeName.toUpperCase() == "input".toUpperCase()) text = text + " " + nodes[i].firstChild.value;
+                else text = text + " " + (nodes[i].innerText != undefined ? nodes[i].innerText : nodes[i].textContent);
+            }
+        }
+    }
+    return text;
+}
+}
+
+function normalize(event) {
+    //нормализация переданного события
+    var evt = event ? event : window.event;
+    //нормалиция сслыки на элемент, переданного события
+    var elem = evt.target ? evt.target : evt.srcElement;
+
+    return elem;
+};
+
+//возвращает определенный тип координаты мыши
+function mouseCoord(e, direct) {
+    //изсключение простых ошибок
+    direct = direct == "" ? "x" : direct;
+    //если свойство e.pageX отсутсвует - имеем дело с ie
+    if (e.pageX == null && e.clientX != null) {
+        //сокращение вызова для дальнейшего использования
+        var html = document.documentElement;
+        var body = document.body;
+        //определяем положение курсора с учетом всех возможностей
+        e.pageX = e.clientX + (html && html.scrollLeft || body && body.scrollLeft || 0) - (html.clientLeft || 0)
+        e.pageY = e.clientY + (html && html.scrollTop || body && body.scrollTop || 0) - (html.clientTop || 0)
+    }
+
+    return direct == "x" ? e.pageX : e.pageY;
+};
+
+Array.prototype.removeByName = function (name) {
+    var index = -1;
+    if (this.indexOf) {
+        index = this.indexOf(name);
+    }
+    else {
+        for (var v = 0; v < this.length; v++) {
+            if (this[v] === name) {
+                index = v;
+                break;
+            }
+        }
+    }
+    if (index == -1) return;
+    var second = this.slice(index + 1, this.length);
+    this.length = this.slice(0, index).length;
+    return this.push.apply(this, second);
+};
+
+function getOffset(elem) {
+    if (elem.getBoundingClientRect) {
+        // "правильный" вариант
+        return getOffsetRect(elem)
+    } else {
+        // пусть работает хоть как-то
+        return getOffsetSum(elem)
+    }
+}
+
+function getOffsetSum(elem) {
+    var top = 0, left = 0
+    while (elem) {
+        top = top + parseInt(elem.offsetTop)
+        left = left + parseInt(elem.offsetLeft)
+        elem = elem.offsetParent
+    }
+
+    return { top: top, left: left }
+}
+
+function getOffsetRect(elem) {
+    var box = elem.getBoundingClientRect();
+    var body = document.body;
+    var docElem = document.documentElement;
+    var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
+    var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+    var clientTop = docElem.clientTop || body.clientTop || 0;
+    var clientLeft = docElem.clientLeft || body.clientLeft || 0;
+    var top = box.top + scrollTop - clientTop;
+    var left = box.left + scrollLeft - clientLeft;
+
+    return { top: Math.round(top), left: Math.round(left) };
+}
+
+function getPageSize() {
+    var xScroll, yScroll;
+
+    if (window.innerHeight && window.scrollMaxY) {
+        xScroll = document.body.scrollWidth;
+        yScroll = window.innerHeight + window.scrollMaxY;
+    } else if (document.body.scrollHeight > document.body.offsetHeight) { // all but Explorer Mac
+        xScroll = document.body.scrollWidth;
+        yScroll = document.body.scrollHeight;
+    } else if (document.documentElement && document.documentElement.scrollHeight > document.documentElement.offsetHeight) { // Explorer 6 strict mode
+        xScroll = document.documentElement.scrollWidth;
+        yScroll = document.documentElement.scrollHeight;
+    } else { // Explorer Mac...would also work in Mozilla and Safari
+        xScroll = document.body.offsetWidth;
+        yScroll = document.body.offsetHeight;
+    }
+
+    var windowWidth, windowHeight;
+    if (self.innerHeight) { // all except Explorer
+        windowWidth = self.innerWidth;
+        windowHeight = self.innerHeight;
+    } else if (document.documentElement && document.documentElement.clientHeight) { // Explorer 6 Strict Mode
+        windowWidth = document.documentElement.clientWidth;
+        windowHeight = document.documentElement.clientHeight;
+    } else if (document.body) { // other Explorers
+        windowWidth = document.body.clientWidth;
+        windowHeight = document.body.clientHeight;
+    }
+
+    // for small pages with total height less then height of the viewport
+    if (yScroll < windowHeight) {
+        pageHeight = windowHeight;
+    } else {
+        pageHeight = yScroll;
+    }
+
+    // for small pages with total width less then width of the viewport
+    if (xScroll < windowWidth) {
+        pageWidth = windowWidth;
+    } else {
+        pageWidth = xScroll;
+    }
+
+    return [pageWidth, pageHeight, windowWidth, windowHeight];
+};
+
+function popUp(e, obj) {
+    obj = $.extend({
+        "displ_x": "10",
+        "displ_x_alt": "10",
+        "displ_y": "54",
+        "displ_y_alt": "56",
+        "name": "popUp",
+        "zindex": 9999999
+    }, typeof obj == "object" ? obj : {});
+
+    var e = e || window.event, x = mouseCoord(e, "x"), y = mouseCoord(e, "y");
+
+    if (id(obj.name) == null || id(obj.name) == undefined) {
+        var div1 = document.createElement("DIV");
+        div1.setAttribute("id", obj.name);
+        div1.style.display = "none";
+        div1.style.position = "absolute";
+        div1.style.width = "240px";
+        div1.style.height = "230px";
+        div1.style.backgroundColor = "transparent";
+        div1.style.paddingTop = "0px";
+        //див позиционирования стилевых дивов
+        var div2 = document.createElement("DIV");
+        div2.style.position = "relative";
+        //верхняя часть фона
+        var div3 = document.createElement("DIV");
+        div3.style.background = "url('/image/popup/popup_head.png') no-repeat scroll top left transparent";
+        div3.style.height = 19 + "px";
+        //основная часть окна
+        var div4 = document.createElement("DIV");
+        div4.style.background = "url('/image/popup/popup_bg.png') repeat-y scroll 0 0 transparent";
+        div4.style.height = "179px";
+        div4.style.color = "#1240ab";
+        //нижняя часть окна
+        var div5 = document.createElement("DIV");
+        div5.style.background = "url('/image/popup/popup_tools.png') no-repeat scroll bottom left transparent";
+        div5.style.height = 32 + "px";
+        div5.style.padding = "8px 0 0 35px";
+        div5.style.marginBottom = "-2px";
+        //к контейнерному диву позиционирования
+        //прикрепляем стилевые дивы 
+        div2.appendChild(div3);
+        div2.appendChild(div4);
+        div2.appendChild(div5);
+        //прикрепление всех дивов к основному,
+        //контейнерному диву
+        div1.appendChild(div2);
+        //вставляем построенный элемент в тело страницы
+        document.body.appendChild(div1);
+    }
+    //устанавливаем позицию верхнего угла, всплывающего окна, по ширине
+    var elem = _DOM.id(obj.name);
+    elem.style.left = getPageSize()[2] - e.clientX < $("#" + obj.name).width() ?
+        x - $("#" + obj.name).width() + eval(obj.displ_x) + "px" :
+        x - eval(obj.displ_x_alt) + "px";
+    //устанавливаем позицию верхнего угла, всплывающего окна, по высоте
+    elem.style.top = e.clientY > elem.height() ?
+        y - elem.height() + eval(obj.displ_y) + "px" :
+        y - eval(obj.displ_y_alt) + "px";
+    elem.style.zindex = obj.zindex;
+    //показываем окно
+    elem.style.display = "block";
+};
+
+
+function popUpHoverCheck(name, time) {
+    setTimeout(function () {
+        if (in_popup || in_hover)
+            return false;
+        $("#" + name).css("display", "none");
+        in_hover = false;
+        in_popup = false;
+        return true;
+    }, time);
+};
+
+function empty(value) {
+    if (typeof value == undefined || value == null || value == "" || value == false) {
+        return true;
+    }
+    return false;
+}
+
+function PreventDefault(event) {
+    event = event || window.event
+
+    if (event.preventDefault) {  // если метод существует
+        event.stopPropagation();
+    }
+    else { // вариант IE<9:
+        event.cancelBubble = true;
+    }
+};
+
+Array.prototype.findInArray = function (obj, fromIndex) {
+    if (fromIndex == null) {
+        fromIndex = 0;
+    }
+    else if (fromIndex < 0) {
+        fromIndex = Math.max(0, this.length + fromIndex);
+    }
+    //
+    for (var i = fromIndex, j = this.length; i < j; i++) {
+        if (this[i].toLowerCase() == obj.toLowerCase())
+            return i;
+    }
+    return -1;
+};
+
+String.prototype.codeHTML = function () {
+    try {
+        return this.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "#039;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/-/g, "&mdash;").replace(/-/g, "&ndash;");
+    }
+    catch (e) { }
+};
+
+String.prototype.decodeHTML = function () {
+    try {
+        return this.replace(/&quot;/ig, '"').replace(/#039;/ig, "'").replace(/&lt;/ig, "<").replace(/&gt;/ig, ">").replace(/&mdash;/ig, "-").replace(/&ndash;/ig, "-").replace(/&amp;/ig, "&");
+    }
+    catch (e) { }
+};
+
